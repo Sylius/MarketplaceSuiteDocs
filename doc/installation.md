@@ -12,7 +12,7 @@ We work on stable, supported and up-to-date versions of packages. We recommend y
 
 
 ```bash
-$ composer require sylius/plus-marketplace-suite-plugin
+composer require sylius/plus-marketplace-suite-plugin
 ```
 
 1. Add plugin dependencies to your `config/bundles.php` file:
@@ -43,7 +43,28 @@ sylius_marketplace_suite:
     resource: "@SyliusMarketplaceSuitePlugin/config/routes.yaml"
 ```
 
-4. Add traits to the entities. Don't change anything if you have set `attribute` as default mapping type
+4. Configure security in `config/packages/security.yaml`:
+
+```yaml
+parameters:
+    sylius.security.new_api_user_account_vendor_route: "%sylius.security.new_api_user_account_route%/vendor"
+    sylius.security.new_api_user_account_vendor_regex: "^%sylius.security.new_api_user_account_vendor_route%"
+
+#    ...
+
+access_control:
+#    ...
+    - { path: "%sylius.security.shop_regex%/account/vendor/conversations/create", role: ROLE_USER }
+    - { path: "%sylius.security.shop_regex%/account/vendor/conversations", role: ROLE_USER }
+    - { path: "%sylius.security.shop_regex%/account/vendor/register", role: ROLE_USER }
+    - { path: "%sylius.security.shop_regex%/account/vendor", role: ROLE_VENDOR }
+    - { path: "%sylius.security.shop_regex%/account", role: ROLE_USER }
+
+    - { path: "%sylius.security.new_api_user_account_vendor_regex%/register", role: ROLE_USER }
+    - { path: "%sylius.security.new_api_user_account_vendor_regex%", role: ROLE_VENDOR }
+```
+
+5. Add traits to the entities. Don't change anything if you have set `attribute` as default mapping type
 ```yaml
 doctrine:
     orm:
@@ -190,7 +211,7 @@ class ShopUser extends BaseShopUser implements ShopUserInterface
 }
 ```
 
-5. Override sylius repositories
+6. Override sylius repositories
 ```php
 <?php
 
@@ -347,7 +368,7 @@ class TaxonRepository extends BaseTaxonRepository implements TaxonRepositoryInte
 }
 ```
 
-6. Override _sylius configuration
+7. Override _sylius configuration
 ```yaml
 sylius_channel:
     resources:
@@ -414,18 +435,29 @@ sylius_taxonomy:
                 repository: App\Repository\TaxonRepository
 
 ```
-7. Clear application cache by using command:
 
-```bash
-$ bin/console cache:clear
+7*. Remove Country entity definition from _sylius configuration
+```yaml
+sylius_addressing:
+    resources:
+#       ...
+        country:
+            classes:
+                model: App\Entity\Addressing\Country
 ```
 
-8. Update your database
+8. Clear application cache by using command:
+
 ```bash
-$ bin/console doctrine:migrations:migrate
+bin/console cache:clear
 ```
 
-9. Copy required templates into correct directories in your project.
+9. Update your database
+```bash
+bin/console doctrine:migrations:migrate
+```
+
+10. Copy required templates into correct directories in your project.
 
 ```
 - vendor/sylius/plus-marketplace-suite-plugin/templates/bundles/SyliusAdminBundle/Order/Show/Summary/_totals.html.twig
@@ -470,7 +502,7 @@ Don't copy
 - vendor/sylius/plus-marketplace-suite-plugin/templates/bundles/SyliusShopBundle/login.html.twig
 ```
 
-10. Add plugin assets to your project
+11. Add plugin assets to your project
 
 Import plugin's `webpack.config.js` file
 
@@ -484,7 +516,7 @@ module.exports = [..., syliusMarketplaceSuiteShop, syliusMarketplaceSuiteAdmin];
 
 Add new packages in `./config/packages/assets.yaml`
 
-```yml
+```yaml
 # config/packages/assets.yaml
 
 framework:
@@ -499,7 +531,7 @@ framework:
 
 Add new build paths in `./config/packages/webpack_encore.yml`
 
-```yml
+```yaml
 # config/packages/webpack_encore.yml
 
 webpack_encore:
@@ -528,55 +560,57 @@ Add encore functions to your templates
 Run `bin/console assets:install` and  `yarn encore dev` or `yarn encore production`
 
 
-### 11. Run the app
+### 12. Run the app
 
-```diff
-$ symfony server:start // or symfony serve -d --no-tls
+```bash
+symfony server:start // or symfony serve -d --no-tls
 ```
 
-### 12. Load fixtures
+### 13. Load fixtures
 
-```diff
-$ vendor/bin/marketplace-fixtures
+```bash
+vendor/bin/marketplace-fixtures
 ```
 
+> **NOTE!** If you install the plugin together with other plugins, the above command may not work, use then: 
+> `bin/console sylius:fixtures:load`
 
 ## Optional steps
 
-### 13. Run tests
+### 14. Run tests
 
 Creating database for your test environment.
 
-```diff
-$ bin/console doctrine:database:create --env=test
-$ bin/console doctrine:schema:create --env=test
+```bash
+bin/console doctrine:database:create --env=test
+bin/console doctrine:schema:create --env=test
 ```
 
 **a)** PHPUnit
 
-```diff
+```bash
 vendor/bin/phpunit --colors=always tests/
 ```
 **b)** PHPSpec
 
-```diff
+```bash
 vendor/bin/phpspec run
 ```
 
 **c)** PHPStan
 
-```diff
+```bash
 vendor/bin/phpstan analyse -c phpstan.neon -l 8 src/
 ```
 
 **d)** Behat
 
-```diff
+```bash
 vendor/bin/behat 
 ```
 
 **e)** Coding Standard
 
-```diff
+```bash
 vendor/bin/ecs check src
 ```
