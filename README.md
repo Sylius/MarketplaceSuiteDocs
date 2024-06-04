@@ -23,6 +23,7 @@ Marketplace suite is the first marketplace platform based on sylius. The solutio
 - [Order management](./doc/manage_orders.md)
 - [Clients](./doc/manage_clients.md)
 - [Product Reviews](./doc/manage_product_reviews.md)
+- [Statistic Reports](./doc/reports.md)
 - [Customization](./doc/how_to_customize.md)
 - [API](./doc/api.md)
 
